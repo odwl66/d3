@@ -77,25 +77,45 @@
 
     var path = d3.geoPath().projection(projection);
 
-    var populacaoScale = d3.scaleThreshold();
-    var demandaScale = d3.scaleLinear();
+    var populacaoScale = d3.scaleLog();
+    var demandaScale = d3.scaleLog();
 
-		d3.queue()
-			.defer(d3.json, "data/topo_pb.json")
-			.defer(d3.csv, "data/populacao_demanda.csv")
-			.await(draw);
+	d3.queue()
+		.defer(d3.json, "data/topo_pb.json")
+		.defer(d3.csv, "data/populacao_demanda.csv")
+		.await(draw);
 
     function draw(error, pb, populacaoXdemanda) {
       if (error) throw error;
 
 			var municipios = topojson.feature(pb, pb.objects.geo_pb);
+		
+		console.log(populacaoXdemanda);
 
-			populacaoScale
+		/*populacaoScale
+			.domain(d3.extent(populacaoXdemanda.map(function(d) { return (+d.demanda / +d.populacao); })))
+			.range([d3.rgb(0, 0, 255, 0.2), d3.rgb(0, 0, 255, 0.4), d3.rgb(0, 0, 255, 0.6), d3.rgb(0, 0, 255, 0.8), d3.rgb(0, 0, 255, 1)]);
+
+		demandaScale
+			.domain(d3.extent(populacaoXdemanda.map(function(d) { return (+d.demanda / +d.populacao); })))
+			.range([d3.rgb(255, 0, 0, 0.2), d3.rgb(255, 0, 0, 0.4), d3.rgb(255, 0, 0, 0.6), d3.rgb(255, 0, 0, 0.8), d3.rgb(255, 0, 0, 1)]);
+		*/
+		populacaoScale
+			.domain(d3.extent(populacaoXdemanda.map(function(d) { return +d.populacao })))
+			//.domain([0, 1e5])
+			.range([d3.rgb(0, 0, 255, 0.1), d3.rgb(0, 0, 255, 0.2), d3.rgb(0, 0, 255, 0.3), d3.rgb(0, 0, 255, 0.4), d3.rgb(0, 0, 255, 0.5)]);
+			//.range(['white', 'blue']);
+
+		demandaScale
+			.domain(d3.extent(populacaoXdemanda.map(function(d) { return +d.demanda })))
+			.range([d3.rgb(255, 0, 0, 0.1), d3.rgb(255, 0, 0, 0.2), d3.rgb(255, 0, 0, 0.3), d3.rgb(255, 0, 0, 0.4), d3.rgb(255, 0, 0, 0.5)]);
+		
+		/*	populacaoScale
       	.domain([5000, 10000, 30000, 50000, 100000])
 				.range([d3.rgb(8, 48, 107, 0.2), d3.rgb(8, 48, 107, 0.4), d3.rgb(8, 48, 107, 0.6), d3.rgb(8, 48, 107, 0.8), d3.rgb(8, 48, 107, 1)]);
 			demandaScale
         .domain([d3.min(populacaoXdemanda, function(d) { return +d.demanda }), d3.max(populacaoXdemanda, function(d) { return +d.demanda })])
-    		.range(d3.schemeOranges[9]);
+    		.range(d3.schemeOranges[9]);*/
 
       svg.selectAll(".municipios")
         .data(municipios.features)
@@ -104,18 +124,18 @@
         .attr("d", path)
         .style("opacity", 0.5);
 
-      svg.selectAll(".municipios")
+      /*svg.selectAll(".municipios")
         .data(municipios.features)
       .enter().append("path")
         .attr("id", function(d) { return "demanda-"+d.properties.codigo_ibg; })
         .attr("d", path)
-        .style("opacity", 0.5);
+        .style("opacity", 0.5);*/
 
 			for (var i = 0; i < populacaoXdemanda.length; i++) {
 				svg.select("#populacao-"+populacaoXdemanda[i].id)
 					.attr("fill", populacaoScale(+populacaoXdemanda[i].populacao));
-				svg.select("#demanda-"+populacaoXdemanda[i].id)
-					.attr("fill", demandaScale(+populacaoXdemanda[i].demanda));
+				//svg.select("#demanda-"+populacaoXdemanda[i].id)
+				//	.attr("fill", demandaScale(+populacaoXdemanda[i].demanda));
 			}
     }
 		</script>
